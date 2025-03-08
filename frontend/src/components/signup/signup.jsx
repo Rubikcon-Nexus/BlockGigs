@@ -44,63 +44,136 @@ const Signup = () => {
     navigate("/");
   };
 
+  // const connectMetamask = async () => {
+  //   let account;
+  //   // let balance;
+  //   ethereum.request({ method: "eth_requestAccounts" }).then((accounts) => {
+  //     account = accounts[0];
+  //     console.log("Address", account);
+  //     setAddr(account);
+
+  //     ethereum
+  //       .request({
+  //         method: "eth_getBalance",
+  //         params: [account, "latest"],
+  //       })
+  //       .then((result) => {
+  //         console.log(result);
+  //         let wei = parseInt(result, 16);
+  //         let bal = wei / 10 ** 18;
+  //         setBalance(bal);
+
+  //         console.log("balance:", bal);
+  //         navigate("");
+  //       });
+
+  //     // Store address in localStorage (or sessionStorage)
+  //     localStorage.setItem("walletAddress", account);
+  //     // sessionStorage.setItem("walletAddress", account); // Use sessionStorage if you prefer
+  //     // });
+
+  //     // Uncomment this to sign message
+
+  //     // Signup and sign in message
+  //     const message = "Sign this message to verify your wallet.";
+
+  //     ethereum
+  //       .request({
+  //         method: "personal_sign",
+  //         params: [message, account],
+  //       })
+  //       .then((signa) => {
+  //         // console.log(result);
+  //         // let signature;
+  //         // let bal = wei / 10 ** 18;
+  //         setSignature(signa);
+  //         setSignature(signa);
+  //         console.log("signature", signa);
+  //         // console.log("balance:", bal);
+  //         navigate("/Persona");
+  //       });
+
+  //     // console.log("Signature:", signature);
+
+  //     // sessionStorage.setItem("walletAddress", account);
+
+  //     sessionStorage.setItem("walletSignature", signature);
+  //   });
+  //   const networkId = await ethereum.request({ method: "net_version" });
+  //   console.log("Network ID:", networkId);
+  // };
   const connectMetamask = async () => {
-    let account;
-    // let balance;
-    ethereum.request({ method: "eth_requestAccounts" }).then((accounts) => {
-      account = accounts[0];
-      console.log("Address", account);
-      setAddr(account);
+    if (!window.ethereum) {
+      alert("MetaMask is not installed!");
+      return;
+    }
 
-      ethereum
-        .request({
-          method: "eth_getBalance",
-          params: [account, "latest"],
-        })
-        .then((result) => {
-          console.log(result);
-          let wei = parseInt(result, 16);
-          let bal = wei / 10 ** 18;
-          setBalance(bal);
+    try {
+      // ✅ Request account access
 
-          console.log("balance:", bal);
-          navigate("");
-        });
-
-      // Store address in localStorage (or sessionStorage)
-      localStorage.setItem("walletAddress", account);
-      // sessionStorage.setItem("walletAddress", account); // Use sessionStorage if you prefer
+      // const accounts = await window.ethereum.request({
+      //   method: "eth_requestAccounts",
       // });
 
-      // Uncomment this to sign message
+      const accounts = await Promise.race([
+        window.ethereum.request({ method: "eth_requestAccounts" }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Request timeout")), 10000)
+        ),
+      ]);
 
-      // Signup and sign in message
+      console.log("Accounts:", accounts); // Debugging
+
+      if (!accounts || accounts.length === 0) {
+        alert("No account connected. Please unlock MetaMask.");
+        return;
+      }
+
+      const account = accounts[0];
+      console.log("Address:", account);
+      setAddr(account);
+
+      // ✅ Store wallet address in localStorage
+      localStorage.setItem("walletAddress", account);
+
+      // ✅ Get account balance
+      const balanceHex = await window.ethereum.request({
+        method: "eth_getBalance",
+        params: [account, "latest"],
+      });
+
+      const balance = parseInt(balanceHex, 16) / 10 ** 18;
+      console.log("Balance:", balance);
+      setBalance(balance);
+
+      // ✅ Store wallet Balance in localStorage
+      localStorage.setItem("walletBalance", balance);
+
+      // ✅ Sign message for authentication
       const message = "Sign this message to verify your wallet.";
+      const signature = await window.ethereum.request({
+        method: "personal_sign",
+        params: [message, account],
+      });
 
-      ethereum
-        .request({
-          method: "personal_sign",
-          params: [message, account],
-        })
-        .then((signa) => {
-          // console.log(result);
-          // let signature;
-          // let bal = wei / 10 ** 18;
-          setSignature(signa);
-          setSignature(signa);
-          console.log("signature", signa);
-          // console.log("balance:", bal);
-          navigate("/Persona");
-        });
+      console.log("Signature:", signature);
+      setSignature(signature);
 
-      // console.log("Signature:", signature);
-
-      // sessionStorage.setItem("walletAddress", account);
-
+      // ✅ Store signature in sessionStorage
       sessionStorage.setItem("walletSignature", signature);
-    });
-    const networkId = await ethereum.request({ method: "net_version" });
-    console.log("Network ID:", networkId);
+
+      // ✅ Get network ID
+      const networkId = await window.ethereum.request({
+        method: "net_version",
+      });
+      console.log("Network ID:", networkId);
+
+      // ✅ Navigate to Persona page
+      navigate("/Persona");
+    } catch (error) {
+      console.error("Error connecting MetaMask:", error);
+      alert("Failed to connect MetaMask. Check console for details.");
+    }
   };
 
   return (
