@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@theme {
+  --font-oleo: "Oleo Script Swash Caps", "sans-serif";
+  --font-montserrat: ['Montserrat', 'sans-serif'];
+  --font-onset: ['Onset', 'sans-serif'];
+}
