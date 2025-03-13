@@ -31,7 +31,8 @@ import ClientDashboard from "./components/ClientDashboard/ClientDashboard";
 import TalentDashboard from "./components/TalentDashboard/TalentDashboard";
 
 // Test component
-import ButtonComponent from "../src/components/button";
+import ButtonComponent from "../Testing/button";
+import WalletConnect from "../Testing/WalletConnect";
 // import FreelancePlatform from "./components/Freelance_UI/Freelance";
 import FreelancePage from "./components/Freelance_UI/FreelancePage";
 import RoleSelection from "./components/Freelance_UI/RoleSelection";
@@ -71,6 +72,7 @@ const App = () => {
 
         {/* Test routes */}
         <Route path="/button" element={<ButtonComponent />} />
+        <Route path="/WalletConnect" element={<WalletConnect />} />
         <Route path="/freelance" element={<FreelancePage />} />
         <Route path="/select-role" element={<RoleSelection />} />
 
