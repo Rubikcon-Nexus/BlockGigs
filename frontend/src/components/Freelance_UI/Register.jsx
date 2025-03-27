@@ -9,12 +9,14 @@ const Register = ({ contract, address }) => {
     const tx = await contract.registerClient();
     await tx.wait();
     alert("Client Registered!");
+    console.log("Client Registered!");
   };
 
   const registerFreelancer = async () => {
     const tx = await contract.registerFreelancer(name);
     await tx.wait();
     alert("Freelancer Registered!");
+    console.log("Freelancer Registered!");
   };
 
   return (
