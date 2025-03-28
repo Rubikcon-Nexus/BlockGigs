@@ -79,38 +79,56 @@
 
 // export default ConnectWallet;
 
-// 1. ConnectWallet.js - Handles Wallet Connection
 import React, { useState } from "react";
-
 import { ethers, BrowserProvider } from "ethers";
 
 const ConnectWallet = ({ setProvider, setSigner, setAddress }) => {
+  const [isConnecting, setIsConnecting] = useState(false);
+
   const connectWallet = async () => {
-    if (!window.ethereum) {
-      alert("Please install MetaMask");
-      return;
+    if (isConnecting) return; // Prevent multiple requests
+    setIsConnecting(true);
+
+    try {
+      if (!window.ethereum) {
+        alert("Please install MetaMask");
+        return;
+      }
+
+      // Check for pending request
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+
+      // Create provider & signer
+      const provider = new BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const address = accounts[0];
+
+      // Set states
+      setProvider(provider);
+      setSigner(signer);
+      setAddress(address);
+
+      console.log("Wallet Connected to", address);
+    } catch (error) {
+      if (error.code === -32002) {
+        console.warn("Request already pending. Please wait.");
+      } else {
+        console.error("Error connecting to MetaMask:", error);
+      }
+    } finally {
+      setIsConnecting(false);
     }
-
-    // const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const provider = new BrowserProvider(window.ethereum);
-    const signer = provider.getSigner();
-    const accounts = await provider.send("eth_requestAccounts", []);
-    const address = accounts[0];
-    // const [userAddress, SetUserAddress] = useState("");
-
-    // const address = await signer.getAddress();
-    // Un comment here
-
-    setProvider(provider);
-    setSigner(signer);
-    setAddress(address);
-    // SetUserAddress(address);
-    console.log("Wallet Connected to", address);
   };
 
   return (
-    <button className="border border-1 rounded-md p-3" onClick={connectWallet}>
-      Connect Wallet
+    <button
+      className="border border-1 rounded-md p-3"
+      onClick={connectWallet}
+      disabled={isConnecting}
+    >
+      {isConnecting ? "Connecting..." : "Connect Wallet"}
     </button>
   );
 };
