@@ -10,9 +10,13 @@ import CompleteJob from "./CompleteJob";
 import Register from "./Register";
 import AssignFreelancer from "./AssignFreelancer";
 import ReleasePayment from "./ReleasePayment";
+import ResolveDispute from "./ResolveDispute";
+import ApproveSpending from "./ApproveSpending";
+import ClientApproveCompletion from "./ClientApproveCompletion";
 
 import CONTRACT_ABI from "./contractDetails/contractABI.json";
-const CONTRACT_ADDRESS = "0xbC66956Dd11EFbB01296107A23AfA3635d192035";
+const CONTRACT_ADDRESS = "0xF6cc533Fc1381B9F68E621D8476e73d8CbDBB27B";
+const USDC_TOKEN_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 
 function FreelancePage() {
   const [signer, setSigner] = useState(null);
@@ -22,10 +26,6 @@ function FreelancePage() {
   const [contract, setContract] = useState(null);
   // Set address
   const [address, setAddress] = useState("");
-
-  const _contract = signer
-    ? new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer)
-    : null;
 
   useEffect(() => {
     if (signer) {
@@ -41,33 +41,30 @@ function FreelancePage() {
   return (
     <div className="p-6">
       <h1>Freelancer Escrow</h1>
+      {/* 1 */}
       <ConnectWallet
         setProvider={setProvider}
         setSigner={setSigner}
         setAddress={setAddress}
       />
+      {/* 2 */}
       <Register contract={contract} address={address} />
-      {contract && <AssignFreelancer contract={contract} />}
-      {contract && <ReleasePayment contract={contract} />}
-
-      {/* <AssignFreelancer /> */}
-      {/* <ReleasePayment /> */}
-      {/* <AddFreelancer contract={contract} signer={signer} /> */}
-      {/* <PostJob contract={contract} /> */}
-      {/* <ApproveMilestone contract={contract} /> */}
-      {/* <CompleteJob contract={contract} /> */}
+      {/*  3*/}
+      {/* {contract && <ApproveSpending />} */}
+      {/* 4 */}
+      {contract && <PostJob contract={USDC_TOKEN_ADDRESS} />}
+      {/* 5 */}
+      {/* {contract && <AssignFreelancer contract={contract} />} */}
+      {/* 6 */}
+      {/* {contract && <CompleteJob />} */}
+      {/* 7 */}
+      {/* {contract && <ClientApproveCompletion />} */}
+      {/* 8 */}
+      {/* {contract && <ReleasePayment contract={contract} />} */}
+      {/* 9 */}
+      {/* {contract && <ResolveDispute />} */}
     </div>
   );
 }
-
-// export default Register;
-
-// const FreelancePage = () => {
-//   return (
-//     <div>
-//       <Register />
-//     </div>
-//   );
-// };
 
 export default FreelancePage;

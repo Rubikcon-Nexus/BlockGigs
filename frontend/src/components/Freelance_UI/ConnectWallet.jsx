@@ -78,15 +78,38 @@
 // };
 
 // export default ConnectWallet;
+// 1. ConnectWallet.js - Handles Wallet Connection
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ethers, BrowserProvider } from "ethers";
 
 const ConnectWallet = ({ setProvider, setSigner, setAddress }) => {
   const [isConnecting, setIsConnecting] = useState(false);
+  const [accountAddress, setAccountAddress] = useState("");
+
+  useEffect(() => {
+    if (!window.ethereum) return;
+
+    const handleAccountsChanged = (accounts) => {
+      if (accounts.length === 0) {
+        setAccountAddress("");
+        setProvider(null);
+        setSigner(null);
+        setAddress(null);
+      } else {
+        setAccountAddress(accounts[0]);
+        setAddress(accounts[0]);
+      }
+    };
+
+    window.ethereum.on("accountsChanged", handleAccountsChanged);
+    return () => {
+      window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
+    };
+  }, []);
 
   const connectWallet = async () => {
-    if (isConnecting) return; // Prevent multiple requests
+    if (isConnecting) return;
     setIsConnecting(true);
 
     try {
@@ -95,28 +118,21 @@ const ConnectWallet = ({ setProvider, setSigner, setAddress }) => {
         return;
       }
 
-      // Check for pending request
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
 
-      // Create provider & signer
       const provider = new BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      const address = accounts[0];
 
-      // Set states
       setProvider(provider);
       setSigner(signer);
-      setAddress(address);
+      setAddress(accounts[0]);
+      setAccountAddress(accounts[0]);
 
-      console.log("Wallet Connected to", address);
+      console.log("Wallet Connected to", accounts[0]);
     } catch (error) {
-      if (error.code === -32002) {
-        console.warn("Request already pending. Please wait.");
-      } else {
-        console.error("Error connecting to MetaMask:", error);
-      }
+      console.error("Error connecting to MetaMask:", error);
     } finally {
       setIsConnecting(false);
     }
@@ -128,7 +144,7 @@ const ConnectWallet = ({ setProvider, setSigner, setAddress }) => {
       onClick={connectWallet}
       disabled={isConnecting}
     >
-      {isConnecting ? "Connecting..." : "Connect Wallet"}
+      {accountAddress || "Connect Wallet"}
     </button>
   );
 };
