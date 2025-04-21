@@ -59,7 +59,7 @@ export default function HowItWorks() {
         {how_it_works.map((cardData, index) => (
           <div
             key={index}
-            className="bg-[#F3F3F3] p-6 rounded-lg shadow-lg text-center w-full sm:w-80"
+            className={`bg-[#F3F3F3] p-6 rounded-lg shadow-lg text-center w-full sm:w-80 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl `}
           >
             {/* <div className="text-3xl text-blue-800">{cardData.icons}</div> */}
             <div className="flex justify-center items-center text-3xl text-blue-800">
@@ -97,7 +97,8 @@ export default function HowItWorks() {
         {key_features.map((cardData, index) => (
           <div
             key={index}
-            className="bg-[#F3F3F3] p-6 rounded-lg shadow-lg text-center w-full sm:w-80"
+            className={`bg-[#F3F3F3] p-6 rounded-lg shadow-lg text-center w-full sm:w-80 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl animate-card-zoom`}
+            style={{ animationDelay: `${index * 1.5}s` }}
           >
             {/* <div className="text-3xl text-blue-800">{cardData.icons}</div> */}
             <div className="flex justify-center items-center text-3xl text-blue-800">

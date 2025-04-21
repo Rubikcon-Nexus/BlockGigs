@@ -4,54 +4,141 @@ import {
   IoIosSearch,
   IoIosNotificationsOutline,
   IoIosArrowDown,
-} from "react-icons/io";
+  IoGridOutline,
+  IoCompassOutline,
+  IoCubeOutline,
+  IoFolderOpenOutline,
+  IoChatbubbleOutline,
+  IoWalletOutline,
+  IoSettingsOutline,
+  IoLogOutOutline,
+} from "react-icons/io5";
+import { Link } from "react-router-dom";
 import boy from "../../src/assets/boy.png";
+import logo from "../../src/assets/3dcube.png";
 
 const Navbar = () => {
   return (
-    <div className="w-full flex flex-wrap justify-between items-center px-4 py-3 lg:px-10">
-      {/* Welcome Text */}
-      <div className="mb-3 lg:mb-0 w-full sm:w-auto">
-        <h2 className="font-montserrat font-medium text-[16px] sm:text-[18px] text-[#1f1e1e]">
-          Welcome back, Let’s <span className="text-[#65c66f]">Work</span>
-        </h2>
-      </div>
-
-      {/* Right Side Elements */}
-      <div className="flex flex-col lg:flex-row lg:justify-between items-center gap-4 ">
-        <div className="flex flex-col items-start lg:flex-row lg:justify-between lg:items-center gap-3 mr-[3rem]">
-          {/* Search Input */}
-          <div className="relative w-full sm:w-[300px] md:w-[360px] lg:w-[400px] z-0 sm:z-auto">
-            <IoIosSearch className="absolute left-4 top-3 w-[20px] h-[20px] text-gray-500" />
-            <input
-              className="w-full h-[40px] bg-white rounded-[12px] pl-10 pr-4 border border-[#E8E8E8] font-montserrat text-base focus:outline-none"
-              type="text"
-              placeholder="Search for jobs, talents, or clients..."
-            />
-          </div>
-
-          {/* Post a New Gig Button */}
-          <button className="flex items-center cursor-pointer gap-2 px-3 sm:px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-            <img src={send} alt="send icon" className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="text-sm sm:text-base">Post a New Gig</span>
-          </button>
+    <div className="flex h-screen">
+      {/* Sidebar */}
+      <div className="w-64 bg-[#0A0F29] text-white py-6 px-4 flex flex-col">
+        {/* Logo */}
+        <div className="mb-12 flex items-center gap-2">
+          <img src={logo} alt="Blockgigs Logo" className="w-8 h-8" />
+          <h1 className="text-2xl font-bold">Blockgigs</h1>
         </div>
 
-        {/* Notifications and Profile */}
-        <div className="flex justify-between items-start lg:items-center gap-3 sm:gap-4 mr-[9.8rem] lg:mr-0">
-          {/* Notifications */}
-          <div className="w-10 h-10 sm:w-[48px] sm:h-[48px] flex items-center justify-center border border-[#e7eef1] rounded-2xl bg-white">
-            <IoIosNotificationsOutline className="text-xl sm:text-2xl text-gray-700 cursor-pointer" />
+        {/* Navigation Links */}
+        <nav className="flex-1 flex flex-col gap-4">
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-3 bg-[#a7d3ec] text-[#242d44] rounded-2xl py-3 px-4"
+          >
+            <IoGridOutline className="w-5 h-5" />
+            <span className="text-sm">Dashboard</span>
+          </Link>
+
+          <Link
+            to="/discover"
+            className="flex items-center gap-3 hover:text-white py-3 px-4"
+          >
+            <IoCompassOutline className="w-5 h-5" />
+            <span className="text-sm">Discover</span>
+          </Link>
+
+          <Link
+            to="/my-gigs"
+            className="flex items-center gap-3 hover:text-white py-3 px-4"
+          >
+            <IoCubeOutline className="w-5 h-5" />
+            <span className="text-sm">My gigs</span>
+          </Link>
+
+          <Link
+            to="/offers"
+            className="flex items-center gap-3 hover:text-white py-3 px-4"
+          >
+            <IoFolderOpenOutline className="w-5 h-5" />
+            <span className="text-sm">Offer & Application</span>
+          </Link>
+
+          <Link
+            to="/chat"
+            className="flex items-center gap-3 hover:text-white py-3 px-4"
+          >
+            <IoChatbubbleOutline className="w-5 h-5" />
+            <span className="text-sm">Chat</span>
+          </Link>
+
+          <Link
+            to="/wallet"
+            className="flex items-center gap-3 hover:text-white py-3 px-4"
+          >
+            <IoWalletOutline className="w-5 h-5" />
+            <span className="text-sm">Wallet</span>
+          </Link>
+
+          <Link
+            to="/settings"
+            className="flex items-center gap-3 hover:text-white py-3 px-4"
+          >
+            <IoSettingsOutline className="w-5 h-5" />
+            <span className="text-sm">Setting</span>
+          </Link>
+        </nav>
+
+        {/* Divider */}
+        <div className="w-full border-t border-[#2D2D2D] my-6"></div>
+
+        {/* Logout Button */}
+        <Link
+          to="/logout"
+          className="flex items-center gap-3 text-red-500 py-3 px-4"
+        >
+          <IoLogOutOutline className="w-5 h-5" />
+          <span className="text-sm">Logout</span>
+        </Link>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1">
+        {/* Top Navigation Bar */}
+        <div className="w-full flex justify-between items-center px-6 py-4 bg-white">
+          {/* Welcome Text */}
+          <div>
+            <h2 className="font-montserrat font-medium text-lg text-[#1f1e1e]">
+              Welcome back, Let's <span className="text-[#65c66f]">Work</span>
+            </h2>
           </div>
 
-          {/* Profile Section */}
-          <div className="flex items-center gap-2 cursor-pointer w-[70px] sm:w-[82px] h-[42px] sm:h-[52px] rounded-[50px] bg-[#BED4DF4D] px-[6px] sm:px-[8px] py-[5px]">
-            <img
-              src={boy}
-              alt="Profile"
-              className="w-8 sm:w-10 h-8 sm:h-10 rounded-full"
-            />
-            <IoIosArrowDown className="text-gray-700 text-sm sm:text-base" />
+          {/* Right Side Elements */}
+          <div className="flex items-center gap-6">
+            {/* Search Input */}
+            <div className="relative w-[400px]">
+              <IoIosSearch className="absolute left-4 top-3 w-5 h-5 text-gray-500" />
+              <input
+                className="w-full h-10 bg-white rounded-xl pl-12 pr-4 border border-[#E8E8E8] font-montserrat focus:outline-none"
+                type="text"
+                placeholder="Search for jobs, talents, or clients..."
+              />
+            </div>
+
+            {/* Post a New Gig Button */}
+            <button className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+              <img src={send} alt="send icon" className="w-5 h-5" />
+              <span>Post a New Gig</span>
+            </button>
+
+            {/* Notifications */}
+            <div className="w-12 h-12 flex items-center justify-center border border-[#e7eef1] rounded-2xl bg-white">
+              <IoIosNotificationsOutline className="text-2xl text-gray-700 cursor-pointer" />
+            </div>
+
+            {/* Profile Section */}
+            <div className="flex items-center gap-2 cursor-pointer w-[82px] h-[52px] rounded-[50px] bg-[#BED4DF4D] px-2 py-1">
+              <img src={boy} alt="Profile" className="w-10 h-10 rounded-full" />
+              <IoIosArrowDown className="text-gray-700" />
+            </div>
           </div>
         </div>
       </div>
