@@ -1,1 +1,29 @@
-@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: "Montserrat", sans-serif;
+  }
+
+  body {
+    font-family: "Montserrat", sans-serif;
+  }
+}
+
+@keyframes cardZoom {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-card-zoom {
+  animation: cardZoom 3s ease-in-out infinite;
+}

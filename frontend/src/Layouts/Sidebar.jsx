@@ -44,7 +44,7 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed md:relative top-0 left-0 bg-[#0a0f29] text-white w-[312px] h-full p-5 flex flex-col justify-between overflow-hidden transition-transform duration-300 ${
+        className={`fixed md:relative top-0 left-0 bg-[#0a0f29] text-white w-[312px] h-full p-2 flex flex-col justify-between overflow-hidden transition-transform duration-300 ${
           isOpen ? "translate-x-0 z-10" : "-translate-x-full md:translate-x-0"
         }`}
       >
@@ -52,7 +52,8 @@ const Sidebar = () => {
           {/* Logo */}
           <div className="flex items-center space-x-3 mb-6">
             <img src={logo} alt="Logo" className="w-10 h-10" />
-            <h1 className="font-oleo font-normal text-[32px] leading-[44.26px] text-[#f3f3f3]">
+
+            <h1 className="font-oleo font-normal text-[32px] leading-[44.26px] text-[#f3f3f3] justify-right">
               Blockgigs
             </h1>
           </div>
@@ -66,7 +67,7 @@ const Sidebar = () => {
               <li key={index}>
                 <Link
                   to={item.path}
-                  className="flex items-center w-[254px] h-[56px] rounded-[16px] space-x-3 px-4 py-2 hover:bg-[#a7d3ec] transition font-montserrat font-medium text-base leading-6 text-[#242d44]"
+                  className="flex-row justify-center items-center w-[254px] h-[56px] rounded-[16px] space-x-3 px-4 py-2 hover:bg-[#a7d3ec] transition font-montserrat font-medium text-base leading-6 text-[#242d44]"
                 >
                   <img
                     src={item.icon}
