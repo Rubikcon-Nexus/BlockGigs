@@ -8,9 +8,13 @@ import wallet from "../../assets/wallet.png";
 import { Link } from "react-router-dom";
 import { BrowserProvider, Contract } from "ethers";
 
-// import ConnectWallet from "../ConnectWallet/ConnectWallet";
+// import the stellar wallet code
+import SignTransactionComponent from "../StellarWallet/SignTransactionComponent";
 
-// Import the connectButton from the tsconfiguration
+// import the authComponent
+import AuthComponent from "../StellarWallet/AuthComponent";
+
+// Import the connectButton from the tsconfiguration for stellar
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 import CONTRACT_ABI from "../../config/contractABI.json";
@@ -280,6 +284,10 @@ const Signup = () => {
                 {loading ? "Connecting..." : "Connect Metamask"}
               </span>
             </button>
+
+            {/* <SignTransactionComponent /> */}
+
+            <AuthComponent />
             {/* Error display */}
             {/* {walletError && (
               <div className="text-red-500 text-sm mt-2 text-center">
