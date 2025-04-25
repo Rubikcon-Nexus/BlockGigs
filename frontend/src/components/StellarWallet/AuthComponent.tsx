@@ -1,12 +1,57 @@
 import React, { useState, useEffect } from "react";
+import stellar from "../../assets/stellar.png";
+import axios from "axios";
+// using of wallet connect
+import {
+  WalletConnectAllowedMethods,
+  WalletConnectModule,
+  WALLET_CONNECT_ID,
+} from "@creit.tech/stellar-wallets-kit/modules/walletconnect.module";
+
 import {
   StellarWalletsKit,
   WalletNetwork,
-  XBULL_ID,
+  // Identifiers
+  XBULL_ID, // the id for the different wallet
+  ALBEDO_ID,
+  HANA_ID,
+  // LEDGER_ID, //IMPORT
+  // TREZOR_ID, //IMPORT
+  LOBSTR_ID,
+  // WALLET_CONNECT_ID, // IMPORT
+  HOTWALLET_ID,
+  FREIGHTER_ID,
+  RABET_ID,
   allowAllModules,
+  // other modules
+  xBullModule,
+  AlbedoModule,
+  FreighterModule,
+  HotWalletModule,
 } from "@creit.tech/stellar-wallets-kit";
-import axios from "axios";
-import stellar from "../../assets/stellar.png";
+
+const kit = new StellarWalletsKit({
+  network: WalletNetwork.TESTNET,
+  selectedWalletId: FREIGHTER_ID,
+  // modules: allowAllModules(),
+  modules: [
+    // new xBullModule(),
+    new FreighterModule(),
+    // new AlbedoModule(),
+    // new LedgerModule(),
+    // new WalletConnectModule({
+    //   url: "https://blockgigs.xyz",
+    //   projectId: "YOUR PROJECT ID",
+    //   method: WalletConnectAllowedMethods.SIGN,
+    //   description: `A DESCRIPTION TO SHOW USERS`,
+    //   name: "Blockgigs",
+    //   icons: [stellar],
+    //   network: WalletNetwork.TESTNET,
+    // }),
+  ],
+
+  // modules: allowAllModules(), // Let user choose wallet
+});
 
 type AuthMode = "login" | "signup";
 type User = {
@@ -19,12 +64,6 @@ interface AuthResponse {
   token: string;
   user: User;
 }
-
-const kit = new StellarWalletsKit({
-  network: WalletNetwork.TESTNET,
-  selectedWalletId: XBULL_ID,
-  modules: allowAllModules(), // Let user choose wallet
-});
 
 const AuthComponent: React.FC = () => {
   const [authState, setAuthState] = useState<{
@@ -41,7 +80,9 @@ const AuthComponent: React.FC = () => {
     authMode: "login",
   });
 
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl: string = "http://localhost:4000";
+  // CHANGE WITH THE URL BELOW
+  // https://blockgigs-bt8d.onrender.com
 
   // Check existing session on mount
   useEffect(() => {
@@ -72,44 +113,62 @@ const AuthComponent: React.FC = () => {
     setAuthState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
-      // 1. Get challenge
+      // 1. Get challenge transaction (XDR) from backend
       const challengeRes = await axios.post(`${apiUrl}/api/wallet/challenge`, {
         wallet_address: address,
       });
 
-      // 2. Sign challenge
-      const { signedTxXdr } = await kit.signTransaction(
-        challengeRes.data.challenge,
-        {
-          address,
-          networkPassphrase: challengeRes.data.networkPassphrase,
-        }
-      );
+      const challengeXdr = challengeRes.data.challenge;
+      const networkPassphrase = challengeRes.data.networkPassphrase;
 
-      // 3. Verify
+      // 2. Sign challenge using connected wallet
+      const { signedTxXdr } = await kit.signTransaction(challengeXdr, {
+        address,
+        networkPassphrase,
+      });
+
+      // 3. Send signed challenge to verify and authenticate
       const authRes = await axios.post<AuthResponse>(
         `${apiUrl}/api/wallet/verify`,
         {
           wallet_address: address,
           signed_challenge: signedTxXdr,
           action: authState.authMode,
-          role: "talent", // or make this configurable
+          role: "talent", // or make this dynamic
         }
       );
 
-      // Update state and store token
+      // 4. Store token and update state
+      // localStorage.setItem("authToken", authRes.data.token);
+      // axios.defaults.headers.common[
+      //   "Authorization"
+      // ] = `Bearer ${authRes.data.token}`;
+
+      // setAuthState((prev) => ({
+      //   ...prev,
+      //   user: authRes.data.user,
+      //   walletAddress: address,
+      //   loading: false,
+      //   error: null,
+      // }));
+      // 4. Store token and update state
       localStorage.setItem("authToken", authRes.data.token);
       axios.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${authRes.data.token}`;
 
-      setAuthState({
-        ...authState,
+      setAuthState((prev) => ({
+        ...prev,
         user: authRes.data.user,
         walletAddress: address,
         loading: false,
         error: null,
-      });
+      }));
+
+      // 🚀 Redirect to Persona only if it's a signup
+      if (authState.authMode === "signup") {
+        window.location.href = `https://your-persona-endpoint.com/verify?wallet=${address}`;
+      }
     } catch (error: any) {
       setAuthState((prev) => ({
         ...prev,
@@ -128,7 +187,10 @@ const AuthComponent: React.FC = () => {
         onWalletSelected: async (option) => {
           kit.setWallet(option.id);
           const { address } = await kit.getAddress();
-          await authenticateWithWallet(address);
+
+          console.log(address);
+          // query the api here
+          // await authenticateWithWallet(address);
         },
       });
     } catch (error: any) {
@@ -159,6 +221,7 @@ const AuthComponent: React.FC = () => {
         <div className="space-y-4">
           <button
             onClick={handleSelectWallet}
+            // onClick={authenticateWithWallet}
             disabled={authState.loading}
             className={`flex items-center justify-center w-full h-[56px] px-6 py-4 gap-4 rounded-xl border border-gray-200 bg-gray-50 ${
               authState.loading ? "opacity-50" : "hover:bg-gray-100"
