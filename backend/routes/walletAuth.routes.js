@@ -2,7 +2,7 @@ import express from "express";
 import {
   generateWalletChallenge,
   verifyWalletSignature,
-  verifyWalletAuth,
+  // verifyWalletAuth,
 } from "../controllers/walletAuth.controller.js";
 import rateLimit from "express-rate-limit";
 
