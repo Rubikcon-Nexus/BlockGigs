@@ -4,8 +4,9 @@ import dotenv from "dotenv";
 dotenv.config();
 // const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/blokgigs";
 
-const MONGO_URI = process.env.MONGO_URI;
-// process.env.LOCAL_MONGO_URI;
+const MONGO_URI =
+  // process.env.MONGO_URI;
+  process.env.LOCAL_MONGO_URI;
 // process.env.MONGO_URI;
 // process.env.LOCAL_MONGO_URI;
 //  || "mongodb://localhost:27017/blockgigs";

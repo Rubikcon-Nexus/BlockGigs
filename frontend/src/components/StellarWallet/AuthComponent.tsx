@@ -1,56 +1,20 @@
 import React, { useState, useEffect } from "react";
 import stellar from "../../assets/stellar.png";
 import axios from "axios";
-// using of wallet connect
-import {
-  WalletConnectAllowedMethods,
-  WalletConnectModule,
-  WALLET_CONNECT_ID,
-} from "@creit.tech/stellar-wallets-kit/modules/walletconnect.module";
-
 import {
   StellarWalletsKit,
   WalletNetwork,
-  // Identifiers
-  XBULL_ID, // the id for the different wallet
-  ALBEDO_ID,
-  HANA_ID,
-  // LEDGER_ID, //IMPORT
-  // TREZOR_ID, //IMPORT
-  LOBSTR_ID,
-  // WALLET_CONNECT_ID, // IMPORT
-  HOTWALLET_ID,
-  FREIGHTER_ID,
-  RABET_ID,
-  allowAllModules,
-  // other modules
+  FreighterModule,
   xBullModule,
   AlbedoModule,
-  FreighterModule,
-  HotWalletModule,
+  FREIGHTER_ID,
 } from "@creit.tech/stellar-wallets-kit";
 
+// Initialize wallet kit
 const kit = new StellarWalletsKit({
   network: WalletNetwork.TESTNET,
-  selectedWalletId: FREIGHTER_ID,
-  // modules: allowAllModules(),
-  modules: [
-    // new xBullModule(),
-    new FreighterModule(),
-    // new AlbedoModule(),
-    // new LedgerModule(),
-    // new WalletConnectModule({
-    //   url: "https://blockgigs.xyz",
-    //   projectId: "YOUR PROJECT ID",
-    //   method: WalletConnectAllowedMethods.SIGN,
-    //   description: `A DESCRIPTION TO SHOW USERS`,
-    //   name: "Blockgigs",
-    //   icons: [stellar],
-    //   network: WalletNetwork.TESTNET,
-    // }),
-  ],
-
-  // modules: allowAllModules(), // Let user choose wallet
+  selectedWalletId: FREIGHTER_ID, // Let user select wallet
+  modules: [new FreighterModule(), new xBullModule(), new AlbedoModule()],
 });
 
 type AuthMode = "login" | "signup";
@@ -63,6 +27,11 @@ type User = {
 interface AuthResponse {
   token: string;
   user: User;
+}
+
+interface ChallengeResponse {
+  challenge: string;
+  networkPassphrase: string;
 }
 
 const AuthComponent: React.FC = () => {
@@ -80,18 +49,12 @@ const AuthComponent: React.FC = () => {
     authMode: "login",
   });
 
-  const apiUrl: string = "http://localhost:4000";
-  // CHANGE WITH THE URL BELOW
-  // https://blockgigs-bt8d.onrender.com
+  const apiUrl = "http://localhost:4000";
 
-  // Check existing session on mount
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
-      // Add token to axios headers
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-      // Optional: Validate token with backend
       validateSession(token);
     }
   }, []);
@@ -104,99 +67,120 @@ const AuthComponent: React.FC = () => {
         user: res.data.user,
         walletAddress: res.data.user.wallet_address,
       }));
-    } catch {
+    } catch (error) {
       localStorage.removeItem("authToken");
+      delete axios.defaults.headers.common["Authorization"];
+    }
+  };
+
+  const handleSelectWallet = async () => {
+    setAuthState((prev) => ({ ...prev, loading: true, error: null }));
+
+    try {
+      // Check if Freighter is installed
+      if (typeof window.freighterApi === "undefined") {
+        throw new Error(
+          "Freighter wallet is not installed. Please install it first."
+        );
+      }
+
+      await kit.openModal({
+        onWalletSelected: async (option) => {
+          try {
+            kit.setWallet(option.id);
+            const { address } = await kit.getAddress();
+            console.log("Wallet connected:", address);
+            await authenticateWithWallet(address);
+          } catch (error: any) {
+            console.error("Wallet interaction error:", error);
+            let errorMessage = "Wallet connection failed";
+
+            if (error.message?.includes("internal error")) {
+              errorMessage =
+                "Please make sure your Freighter wallet is unlocked and on the Testnet network.";
+            } else if (error.message) {
+              errorMessage = error.message;
+            }
+
+            setAuthState((prev) => ({
+              ...prev,
+              error: errorMessage,
+              loading: false,
+            }));
+          }
+        },
+      });
+    } catch (error: any) {
+      console.error("Wallet modal error:", error);
+      setAuthState((prev) => ({
+        ...prev,
+        error:
+          error.message ||
+          "Failed to open wallet selector. Please make sure Freighter is installed and unlocked.",
+        loading: false,
+      }));
     }
   };
 
   const authenticateWithWallet = async (address: string) => {
-    setAuthState((prev) => ({ ...prev, loading: true, error: null }));
-
     try {
-      // 1. Get challenge transaction (XDR) from backend
-      const challengeRes = await axios.post(`${apiUrl}/api/wallet/challenge`, {
-        wallet_address: address,
+      // 1. Get challenge from backend
+      const challengeRes = await axios.post<ChallengeResponse>(
+        `${apiUrl}/api/wallet/challenge`,
+        { wallet_address: address }
+      );
+
+      // 2. Sign the challenge
+      const { signedTxXdr } = await kit.signTransaction({
+        xdr: challengeRes.data.challenge,
+        publicKey: address,
+        networkPassphrase: challengeRes.data.networkPassphrase,
       });
 
-      const challengeXdr = challengeRes.data.challenge;
-      const networkPassphrase = challengeRes.data.networkPassphrase;
-
-      // 2. Sign challenge using connected wallet
-      const { signedTxXdr } = await kit.signTransaction(challengeXdr, {
-        address,
-        networkPassphrase,
-      });
-
-      // 3. Send signed challenge to verify and authenticate
+      // 3. Verify with backend
       const authRes = await axios.post<AuthResponse>(
         `${apiUrl}/api/wallet/verify`,
         {
           wallet_address: address,
           signed_challenge: signedTxXdr,
           action: authState.authMode,
-          role: "talent", // or make this dynamic
+          role: "talent",
         }
       );
 
-      // 4. Store token and update state
-      // localStorage.setItem("authToken", authRes.data.token);
-      // axios.defaults.headers.common[
-      //   "Authorization"
-      // ] = `Bearer ${authRes.data.token}`;
-
-      // setAuthState((prev) => ({
-      //   ...prev,
-      //   user: authRes.data.user,
-      //   walletAddress: address,
-      //   loading: false,
-      //   error: null,
-      // }));
       // 4. Store token and update state
       localStorage.setItem("authToken", authRes.data.token);
       axios.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${authRes.data.token}`;
 
-      setAuthState((prev) => ({
-        ...prev,
-        user: authRes.data.user,
+      setAuthState({
         walletAddress: address,
-        loading: false,
+        user: authRes.data.user,
         error: null,
-      }));
+        loading: false,
+        authMode: authState.authMode,
+      });
 
-      // 🚀 Redirect to Persona only if it's a signup
+      // Redirect for signup if needed
       if (authState.authMode === "signup") {
-        window.location.href = `https://your-persona-endpoint.com/verify?wallet=${address}`;
+        window.location.href = `/verify?wallet=${address}`;
       }
     } catch (error: any) {
+      console.error("Authentication error details:", error);
+
+      let errorMessage = "Authentication failed";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (error.ext?.message) {
+        errorMessage = error.ext.message;
+      }
+
       setAuthState((prev) => ({
         ...prev,
-        error:
-          error.response?.data?.message ||
-          error.message ||
-          "Authentication failed",
-        loading: false,
-      }));
-    }
-  };
-
-  const handleSelectWallet = async () => {
-    try {
-      await kit.openModal({
-        onWalletSelected: async (option) => {
-          kit.setWallet(option.id);
-          const { address } = await kit.getAddress();
-
-          console.log(address);
-          // query the api here
-          // await authenticateWithWallet(address);
-        },
-      });
-    } catch (error: any) {
-      setAuthState((prev) => ({
-        ...prev,
-        error: "Wallet connection failed: " + error.message,
+        error: errorMessage,
         loading: false,
       }));
     }
@@ -211,8 +195,16 @@ const AuthComponent: React.FC = () => {
       user: null,
       error: null,
       loading: false,
-      authMode: "signup",
+      authMode: "login",
     });
+  };
+
+  const toggleAuthMode = () => {
+    setAuthState((prev) => ({
+      ...prev,
+      authMode: prev.authMode === "login" ? "signup" : "login",
+      error: null, // Clear error when toggling
+    }));
   };
 
   return (
@@ -221,10 +213,11 @@ const AuthComponent: React.FC = () => {
         <div className="space-y-4">
           <button
             onClick={handleSelectWallet}
-            // onClick={authenticateWithWallet}
             disabled={authState.loading}
             className={`flex items-center justify-center w-full h-[56px] px-6 py-4 gap-4 rounded-xl border border-gray-200 bg-gray-50 ${
-              authState.loading ? "opacity-50" : "hover:bg-gray-100"
+              authState.loading
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-100"
             }`}
           >
             <img src={stellar} alt="stellar logo" className="h-6 w-auto" />
@@ -236,11 +229,22 @@ const AuthComponent: React.FC = () => {
                   }`}
             </span>
           </button>
+
+          <div className="text-center">
+            <button
+              onClick={toggleAuthMode}
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              {authState.authMode === "login"
+                ? "Need an account? Sign up"
+                : "Already have an account? Login"}
+            </button>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">
           <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-            <p className="text-green-800">
+            <p className="text-green-800 font-medium">
               Successfully{" "}
               {authState.authMode === "login" ? "logged in" : "signed up"}
             </p>
@@ -251,7 +255,7 @@ const AuthComponent: React.FC = () => {
 
           <button
             onClick={handleSignOut}
-            className="w-full bg-gray-200 text-gray-800 py-3 rounded-lg hover:bg-gray-300"
+            className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 rounded-lg transition-colors"
           >
             Sign Out
           </button>
@@ -260,7 +264,13 @@ const AuthComponent: React.FC = () => {
 
       {authState.error && (
         <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200 text-red-600">
-          {authState.error}
+          <p className="font-medium">Error:</p>
+          <p>{authState.error}</p>
+          {authState.error.includes("internal error") && (
+            <p className="mt-2 text-sm">
+              Try refreshing the page or using a different wallet.
+            </p>
+          )}
         </div>
       )}
     </div>
